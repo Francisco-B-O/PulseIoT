@@ -1,0 +1,14 @@
+# Build stage
+FROM maven:3.9.6-eclipse-temurin-21-alpine AS builder
+WORKDIR /workspace
+
+# Copy only the spring-event-iot-platform project
+COPY spring-event-iot-platform/ ./
+
+# Build processing-service
+RUN mvn clean package -DskipTests --projects services/processing-service --also-make
+
+# Runtime stage
+FROM eclipse-temurin:21-jre-alpine
+COPY --from=builder /workspace/services/processing-service/target/*.jar app.jar
+ENTRYPOINT ["java","-jar","/app.jar"]

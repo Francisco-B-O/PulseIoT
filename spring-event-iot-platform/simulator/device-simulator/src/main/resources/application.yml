@@ -1,0 +1,18 @@
+server:
+  port: 8087
+
+spring:
+  application:
+    name: device-simulator
+
+simulator:
+  gateway-url: ${SIMULATOR_GATEWAY_URL:http://gateway-service:8080}
+  auth-username: ${SIMULATOR_AUTH_USERNAME:admin}
+  auth-password: ${SIMULATOR_AUTH_PASSWORD:admin123}
+  interval: ${SIMULATOR_INTERVAL:5000}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

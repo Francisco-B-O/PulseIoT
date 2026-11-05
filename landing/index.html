@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PulseIoT — Real-time IoT streaming &amp; ML anomaly detection</title>
+<meta name="description" content="Event-driven IoT platform: Spring Boot microservices, Kafka, PySpark and an ML anomaly-detection ensemble, with a live Angular dashboard. Portfolio project by Francisco Balonero.">
+<meta name="theme-color" content="#070b14">
+<meta property="og:title" content="PulseIoT — IoT streaming & ML anomaly detection">
+<meta property="og:description" content="9 microservices · Kafka · PySpark · FastAPI ML · Angular. Try the live demo.">
+<meta property="og:image" content="https://francisco-b-o.github.io/PulseIoT/assets/social-preview.png">
+<meta property="og:type" content="website">
+<link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="stream" aria-hidden="true"></canvas>
+<div class="glow g1"></div><div class="glow g2"></div>
+
+<header class="nav">
+  <a class="logo" href="#top"><img class="logo-mark" src="assets/logo.svg" alt="" width="28" height="28"><span>Pulse<b>IoT</b></span></a>
+  <nav>
+    <a href="#pipeline">Architecture</a>
+    <a href="#features">Features</a>
+    <a href="#gallery">Screens</a>
+    <a href="#stack">Stack</a>
+    <a class="btn small" href="app/">Live demo →</a>
+  </nav>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="pill reveal"><span class="dot"></span> v1.0.0 · open source portfolio project</div>
+    <h1 class="reveal">Real-time IoT telemetry,<br><span class="grad">ML-powered anomaly detection.</span></h1>
+    <p class="lead reveal">An event-driven platform where sensor data flows through <b>Kafka</b> and <b>Spark</b>, an ML ensemble flags anomalies in milliseconds, and a live <b>Angular</b> dashboard puts it all on a map.</p>
+    <div class="cta reveal">
+      <a class="btn" href="app/">▶ Launch interactive demo</a>
+      <a class="btn ghost" href="https://github.com/Francisco-B-O/PulseIoT">View on GitHub</a>
+    </div>
+    <div class="hero-shot reveal tilt">
+      <div class="frame"><div class="bar"><i></i><i></i><i></i><span>pulseiot / dashboard</span></div><img src="assets/dashboard.png" alt="PulseIoT dashboard" width="1440" height="900"></div>
+    </div>
+  </section>
+
+  <section class="stats">
+    <div class="stat reveal"><span class="num" data-to="9">0</span><span>Spring Boot microservices</span></div>
+    <div class="stat reveal"><span class="num" data-to="20">0</span><span>containers, one <code>compose up</code></span></div>
+    <div class="stat reveal"><span class="num" data-to="3">0</span><span>model ensemble (IF · Z-score · trend)</span></div>
+    <div class="stat reveal"><span class="num" data-to="300">0</span><span>automated tests</span></div>
+  </section>
+
+  <section id="pipeline" class="section">
+    <h2 class="reveal">From sensor to insight, <span class="grad">event by event</span></h2>
+    <p class="sub reveal">Every hop is a Kafka topic. Services are decoupled, independently scalable and discoverable through Eureka.</p>
+    <div class="flow reveal">
+      <div class="node"><em>Device / Simulator</em><small>HTTP + JWT</small></div>
+      <div class="arrow"></div>
+      <div class="node"><em>API Gateway</em><small>auth · rate-limit · routing</small></div>
+      <div class="arrow"></div>
+      <div class="node"><em>Ingestion</em><small>→ <code>device-data-received</code></small></div>
+      <div class="arrow"></div>
+      <div class="node"><em>Processing</em><small>rules → <code>device-data-processed</code></small></div>
+      <div class="arrow"></div>
+      <div class="node hot"><em>Spark Streaming</em><small>rolling windows → <code>device-data-enriched</code></small></div>
+      <div class="arrow"></div>
+      <div class="node hot"><em>ML Platform</em><small>ensemble scoring → <code>ml-anomalies</code></small></div>
+      <div class="arrow"></div>
+      <div class="node"><em>Alerts · Analytics</em><small>Postgres · Redis</small></div>
+    </div>
+  </section>
+
+  <section id="features" class="section">
+    <h2 class="reveal">What it <span class="grad">does</span></h2>
+    <div class="grid">
+      <article class="card reveal"><div class="ic">🧠</div><h3>Ensemble anomaly detection</h3><p>IsolationForest, rolling Z-score and trend detection vote on every reading. Auto-retrain runs on a schedule you control.</p></article>
+      <article class="card reveal"><div class="ic">🗺️</div><h3>Geospatial monitoring</h3><p>Devices on a live map, draw polygons as areas, temperature heatmap and automatic high-risk zone highlighting.</p></article>
+      <article class="card reveal"><div class="ic">⚡</div><h3>Streaming pipeline</h3><p>Kafka topics end to end with PySpark rolling-window features, idempotent consumers and retry/backoff.</p></article>
+      <article class="card reveal"><div class="ic">🔐</div><h3>Secure by default</h3><p>JWT auth, role-based access on the gateway, network-isolated internal services, rate limiting.</p></article>
+      <article class="card reveal"><div class="ic">📈</div><h3>Analytics &amp; alerting</h3><p>Redis-backed telemetry history, configurable alert rules, CSV export and a live notification centre.</p></article>
+      <article class="card reveal"><div class="ic">🛰️</div><h3>Observable</h3><p>Health dashboard, Eureka discovery, Prometheus + Grafana + Zipkin tracing wired into the compose stack.</p></article>
+    </div>
+  </section>
+
+  <section id="gallery" class="section">
+    <h2 class="reveal">A tour of the <span class="grad">dashboard</span></h2>
+    <p class="sub reveal">Dark and light themes, responsive down to mobile.</p>
+    <div class="tabs reveal" role="tablist">
+      <button class="on" data-s="dashboard">Dashboard</button><button data-s="map">Map</button><button data-s="ml">ML Platform</button>
+      <button data-s="devices">Devices</button><button data-s="alerts">Alerts</button><button data-s="analytics">Analytics</button><button data-s="telemetry">Telemetry</button><button data-s="health">Health</button>
+      <span class="sep"></span><button id="themeBtn" class="theme">☾ Dark</button>
+    </div>
+    <div class="gallery reveal">
+      <div class="frame big"><div class="bar"><i></i><i></i><i></i><span id="gtitle">pulseiot / dashboard</span></div><img id="gimg" src="assets/dashboard.png" alt="Dashboard screenshot"></div>
+      <img class="phone" src="assets/mobile.png" alt="Mobile layout" loading="lazy">
+    </div>
+    <div class="reveal" style="max-width:900px;margin:0 auto 30px"><div class="frame"><div class="bar"><i></i><i></i><i></i><span>guided tour</span></div><img src="assets/demo.gif" alt="Animated tour of the dashboard" loading="lazy"></div></div>
+    <p class="sub reveal"><a class="btn" href="app/">Try it yourself — it runs entirely in your browser →</a></p>
+  </section>
+
+  <section id="stack" class="section">
+    <h2 class="reveal">Built with</h2>
+    <div class="chips reveal">
+      <span>Java 21</span><span>Spring Boot 3.4</span><span>Spring Cloud Gateway</span><span>Eureka</span><span>Apache Kafka</span><span>PySpark</span><span>FastAPI</span><span>scikit-learn</span><span>PostgreSQL</span><span>Redis</span><span>Angular 17</span><span>Leaflet</span><span>ngx-charts</span><span>Docker Compose</span><span>Prometheus</span><span>Grafana</span><span>Zipkin</span><span>JWT</span>
+    </div>
+  </section>
+
+  <section class="section final">
+    <h2 class="reveal">See it <span class="grad">live</span></h2>
+    <p class="sub reveal">The demo runs the real Angular app against an in-browser mock of the API — no install, no backend.</p>
+    <div class="cta reveal"><a class="btn" href="app/">▶ Launch demo</a><a class="btn ghost" href="https://github.com/Francisco-B-O/PulseIoT">Source code</a></div>
+  </section>
+</main>
+
+<footer>
+  <span>© 2026 Francisco Balonero Olivera · PulseIoT v1.0.0</span>
+  <a href="https://github.com/Francisco-B-O">github.com/Francisco-B-O</a>
+</footer>
+<script src="main.js"></script>
+</body>
+</html>

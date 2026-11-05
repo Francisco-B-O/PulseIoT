@@ -1,0 +1,601 @@
+{
+    "info": {
+        "name": "IoT Telemetry Platform",
+        "description": "Complete API collection for the IoT Telemetry Platform — microservices, ML API, and JWT authentication. Import alongside IoT-Platform-Environment.json and select the 'IoT Platform - Development' environment.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+        "_postman_id": "iot-platform-2026",
+        "version": "2.0.0"
+    },
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{token}}",
+                "type": "string"
+            }
+        ]
+    },
+    "item": [
+        {
+            "name": "1. AUTH",
+            "description": "Authentication endpoints for user registration and login",
+            "item": [
+                {
+                    "name": "Register User",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type", "value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"username\": \"developer\",\n  \"password\": \"SecurePass123!\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/auth/register",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "auth", "register"]
+                        },
+                        "description": "Register a new user. No auth required.\n\n**Response (200):** empty body on success."
+                    }
+                },
+                {
+                    "name": "Login User",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 200) {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.environment.set('token', jsonData.token);",
+                                    "    console.log('Token saved: ' + jsonData.token.substring(0, 20) + '...');",
+                                    "} else {",
+                                    "    console.log('Login failed: ' + pm.response.code);",
+                                    "}"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type", "value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/auth/login",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "auth", "login"]
+                        },
+                        "description": "Authenticate and obtain a JWT token. The test script automatically saves the token to the `token` environment variable.\n\n**Response (200):**\n```json\n{\"token\": \"eyJ...\", \"expiresIn\": 3600}\n```"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "2. DEVICES",
+            "description": "Device registration and management",
+            "item": [
+                {
+                    "name": "Create Device",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {"key": "Content-Type", "value": "application/json"},
+                            {"key": "Authorization", "value": "Bearer {{token}}"}
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"sensor-01\",\n  \"type\": \"TEMPERATURE\",\n  \"location\": \"Building A\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/devices",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "devices"]
+                        },
+                        "description": "Register a new IoT device.\n\n**type values:** TEMPERATURE | HUMIDITY | VIBRATION | MULTI_SENSOR\n\n**Response (201):** Created device object."
+                    }
+                },
+                {
+                    "name": "List All Devices",
+                    "request": {
+                        "method": "GET",
+                        "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/devices",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "devices"]
+                        },
+                        "description": "Get all registered devices.\n\n**Response (200):** Array of device objects."
+                    }
+                },
+                {
+                    "name": "Get Device by ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/devices/sensor-01",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "devices", "sensor-01"]
+                        },
+                        "description": "Get a specific device by its ID."
+                    }
+                },
+                {
+                    "name": "Update Device",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {"key": "Content-Type", "value": "application/json"},
+                            {"key": "Authorization", "value": "Bearer {{token}}"}
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"sensor-01-updated\",\n  \"location\": \"Building B\",\n  \"status\": \"ACTIVE\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/devices/sensor-01",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "devices", "sensor-01"]
+                        },
+                        "description": "Update an existing device."
+                    }
+                },
+                {
+                    "name": "Delete Device",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/devices/sensor-01",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "devices", "sensor-01"]
+                        },
+                        "description": "Permanently delete a device.\n\n**Response (204):** No content."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "3. TELEMETRY",
+            "description": "Send telemetry readings through the ingestion pipeline → Kafka → processing → alerts + analytics + ML",
+            "item": [
+                {
+                    "name": "Send Telemetry — Normal",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {"key": "Content-Type", "value": "application/json"},
+                            {"key": "Authorization", "value": "Bearer {{token}}"}
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"deviceId\": \"sensor-01\",\n  \"payload\": {\n    \"temperature\": 23.5,\n    \"humidity\": 55.0,\n    \"vibration\": 0.02\n  }\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/telemetry",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "telemetry"]
+                        },
+                        "description": "Ingest a normal telemetry reading. The event flows through Kafka → processing-service → alert-service, analytics-service, and ML platform.\n\n**Response (202):** Accepted."
+                    }
+                },
+                {
+                    "name": "Send Telemetry — Critical (triggers alert)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {"key": "Content-Type", "value": "application/json"},
+                            {"key": "Authorization", "value": "Bearer {{token}}"}
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"deviceId\": \"sensor-01\",\n  \"payload\": {\n    \"temperature\": 115.0,\n    \"humidity\": 95.0,\n    \"vibration\": 8.0\n  }\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/telemetry",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "telemetry"]
+                        },
+                        "description": "Ingest a critical reading (temperature > threshold). This will create a HIGH severity alert and be detected as an anomaly by the ML model."
+                    }
+                },
+                {
+                    "name": "Send Telemetry — Warning",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {"key": "Content-Type", "value": "application/json"},
+                            {"key": "Authorization", "value": "Bearer {{token}}"}
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"deviceId\": \"sensor-01\",\n  \"payload\": {\n    \"temperature\": 83.0,\n    \"humidity\": 85.0,\n    \"vibration\": 3.5\n  }\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/telemetry",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "telemetry"]
+                        },
+                        "description": "Ingest a warning-level reading (temperature > threshold * 0.8). Creates a MEDIUM severity alert."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "4. ALERTS",
+            "description": "Alert management — list, acknowledge, filter",
+            "item": [
+                {
+                    "name": "Get All Alerts",
+                    "request": {
+                        "method": "GET",
+                        "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/alerts",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "alerts"]
+                        },
+                        "description": "Retrieve all alerts.\n\n**Response (200):**\n```json\n[\n  {\n    \"id\": \"uuid\",\n    \"deviceId\": \"sensor-01\",\n    \"severity\": \"HIGH\",\n    \"message\": \"Critical temperature detected...\",\n    \"timestamp\": \"2026-04-06T10:00:00\",\n    \"acknowledged\": false\n  }\n]\n```"
+                    }
+                },
+                {
+                    "name": "Get Alert by ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/alerts/{{alert_id}}",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "alerts", "{{alert_id}}"]
+                        },
+                        "description": "Get a single alert by UUID. Set `alert_id` in the environment or replace inline."
+                    }
+                },
+                {
+                    "name": "Acknowledge Alert",
+                    "request": {
+                        "method": "PUT",
+                        "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/alerts/{{alert_id}}/acknowledge",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "alerts", "{{alert_id}}", "acknowledge"]
+                        },
+                        "description": "Mark an alert as acknowledged.\n\n**Response (200):** Updated alert object with `acknowledged: true`."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "5. ALERT RULES",
+            "description": "Runtime configuration of alert thresholds — no restart required",
+            "item": [
+                {
+                    "name": "Get Temperature Threshold",
+                    "request": {
+                        "method": "GET",
+                        "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/rules/temperature",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "rules", "temperature"]
+                        },
+                        "description": "Returns the current temperature alert threshold in °C.\n\n**Response (200):** `100.0`\n\nAlert logic:\n- `temp > threshold` → CRITICAL → HIGH alert\n- `temp > threshold * 0.8` → WARNING → MEDIUM alert"
+                    }
+                },
+                {
+                    "name": "Update Temperature Threshold",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {"key": "Content-Type", "value": "application/json"},
+                            {"key": "Authorization", "value": "Bearer {{token}}"}
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"threshold\": 90\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/rules/temperature",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "rules", "temperature"]
+                        },
+                        "description": "Update the temperature threshold at runtime. The change takes effect on the next telemetry event — no service restart needed.\n\n**Example:** `threshold: 90` → CRITICAL at >90°C, WARNING at >72°C."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "6. ANALYTICS",
+            "description": "Per-device event statistics and telemetry history from the analytics service (Redis-backed)",
+            "item": [
+                {
+                    "name": "Get Device Stats",
+                    "request": {
+                        "method": "GET",
+                        "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/analytics/stats/sensor-01",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "analytics", "stats", "sensor-01"]
+                        },
+                        "description": "Returns event count and last-seen timestamp for a device.\n\n**Response (200):**\n```json\n{\n  \"deviceId\": \"sensor-01\",\n  \"eventCount\": 142,\n  \"lastSeen\": 1743850000000\n}\n```\n\n`lastSeen` is epoch milliseconds. Null if the device has never sent telemetry. The frontend uses a 2-minute window for the Online/Offline badge."
+                    }
+                },
+                {
+                    "name": "Get Device Telemetry History",
+                    "request": {
+                        "method": "GET",
+                        "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/analytics/history/sensor-01",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "analytics", "history", "sensor-01"]
+                        },
+                        "description": "Returns the last 50 telemetry snapshots for a device, newest first. Stored in a Redis ring-buffer capped at 50 entries per device.\n\n**Response (200):**\n```json\n[\n  {\"ts\": 1743850000000, \"temperature\": 24.5, \"humidity\": 52.0, \"vibration\": 0.12},\n  {\"ts\": 1743849940000, \"temperature\": 23.8, \"humidity\": 51.5, \"vibration\": 0.10}\n]\n```"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "7. ML API",
+            "description": "Isolation Forest anomaly detection — predictions, training, stats, auto-retrain. Port 8000 (direct, no gateway).",
+            "item": [
+                {
+                    "name": "ML Health Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{ml_url}}/health",
+                            "host": ["{{ml_url}}"],
+                            "path": ["health"]
+                        },
+                        "description": "Returns ML service health, current model version, and anomaly threshold.\n\n**Response (200):**\n```json\n{\n  \"status\": \"healthy\",\n  \"model_version\": \"20260402_161522\",\n  \"threshold\": -0.0363\n}\n```"
+                    }
+                },
+                {
+                    "name": "Predict — Normal reading",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type", "value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"deviceId\": \"sensor-01\",\n  \"timestamp\": \"2026-04-06T12:00:00Z\",\n  \"enrichedData\": {\n    \"temperature\": 23.5,\n    \"humidity\": 55.0,\n    \"vibration\": 0.02\n  }\n}"
+                        },
+                        "url": {
+                            "raw": "{{ml_url}}/predict",
+                            "host": ["{{ml_url}}"],
+                            "path": ["predict"]
+                        },
+                        "description": "Score a single telemetry event for anomaly. The predictor fetches the last 4 events from the data lake for rolling-feature context.\n\n**Response (200):**\n```json\n{\n  \"is_anomaly\": false,\n  \"anomaly_score\": 0.003,\n  \"prediction\": \"NORMAL\",\n  \"threshold\": -0.0363\n}\n```"
+                    }
+                },
+                {
+                    "name": "Predict — Anomalous reading",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type", "value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"deviceId\": \"sensor-01\",\n  \"timestamp\": \"2026-04-06T12:05:00Z\",\n  \"enrichedData\": {\n    \"temperature\": 95.0,\n    \"humidity\": 10.0,\n    \"vibration\": 8.0\n  }\n}"
+                        },
+                        "url": {
+                            "raw": "{{ml_url}}/predict",
+                            "host": ["{{ml_url}}"],
+                            "path": ["predict"]
+                        },
+                        "description": "Score an anomalous reading. With critical sensor values the model should return `is_anomaly: true`.\n\n**Response (200):**\n```json\n{\n  \"is_anomaly\": true,\n  \"anomaly_score\": -0.184,\n  \"prediction\": \"ANOMALY\",\n  \"threshold\": -0.0363\n}\n```"
+                    }
+                },
+                {
+                    "name": "Predict — Batch",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type", "value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"deviceId\": \"sensor-01\",\n  \"events\": [\n    {\"timestamp\": \"2026-04-06T12:00:00Z\", \"enrichedData\": {\"temperature\": 23, \"humidity\": 52, \"vibration\": 0.1}},\n    {\"timestamp\": \"2026-04-06T12:01:00Z\", \"enrichedData\": {\"temperature\": 24, \"humidity\": 53, \"vibration\": 0.12}},\n    {\"timestamp\": \"2026-04-06T12:02:00Z\", \"enrichedData\": {\"temperature\": 95, \"humidity\": 9, \"vibration\": 7.5}}\n  ]\n}"
+                        },
+                        "url": {
+                            "raw": "{{ml_url}}/predict/batch",
+                            "host": ["{{ml_url}}"],
+                            "path": ["predict", "batch"]
+                        },
+                        "description": "Score a time-ordered sequence of events. Events must be oldest-first. Returns one result per event.\n\n**Response (200):**\n```json\n{\n  \"device_id\": \"sensor-01\",\n  \"results\": [\n    {\"is_anomaly\": false, \"anomaly_score\": -0.009, \"prediction\": \"NORMAL\", \"threshold\": -0.036},\n    {\"is_anomaly\": false, \"anomaly_score\": 0.003, \"prediction\": \"NORMAL\", \"threshold\": -0.036},\n    {\"is_anomaly\": true,  \"anomaly_score\": -0.184, \"prediction\": \"ANOMALY\", \"threshold\": -0.036}\n  ]\n}\n```"
+                    }
+                },
+                {
+                    "name": "Retrain Model",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{ml_url}}/train",
+                            "host": ["{{ml_url}}"],
+                            "path": ["train"]
+                        },
+                        "description": "Trigger a full model retraining on the Parquet data lake. Reads raw data, fits IsolationForest, computes threshold at 5th percentile, saves model, and reloads it in-process.\n\n**Response (200):**\n```json\n{\n  \"status\": \"success\",\n  \"message\": \"Model retrained successfully.\",\n  \"threshold\": -0.0363,\n  \"model_version\": \"20260406_120000\"\n}\n```"
+                    }
+                },
+                {
+                    "name": "Data Lake Stats",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{ml_url}}/stats",
+                            "host": ["{{ml_url}}"],
+                            "path": ["stats"]
+                        },
+                        "description": "Summary of the Parquet data lake (cached 60 s to avoid full scan on each call).\n\n**Response (200):**\n```json\n{\n  \"total_events\": 861,\n  \"devices\": [\"sensor-01\", \"sensor-02\"],\n  \"latest_timestamp\": \"2026-04-06 12:00:00\"\n}\n```"
+                    }
+                },
+                {
+                    "name": "Anomaly Stats",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{ml_url}}/anomaly-stats",
+                            "host": ["{{ml_url}}"],
+                            "path": ["anomaly-stats"]
+                        },
+                        "description": "Aggregated statistics from the in-memory prediction history (last 500 predictions, resets on restart). Includes all predictions from both the Kafka consumer path and direct REST calls.\n\n**Response (200):**\n```json\n{\n  \"total_predictions\": 320,\n  \"anomaly_count\": 14,\n  \"anomaly_rate\": 4.4,\n  \"anomalies_by_device\": {\n    \"sensor-01\": 9,\n    \"sensor-02\": 5\n  },\n  \"recent_anomalies\": [\n    {\n      \"device_id\": \"sensor-01\",\n      \"timestamp\": \"2026-04-06T10:12:00Z\",\n      \"is_anomaly\": true,\n      \"score\": -0.184\n    }\n  ]\n}\n```"
+                    }
+                },
+                {
+                    "name": "Get Auto-Retrain Config",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{ml_url}}/autotrain",
+                            "host": ["{{ml_url}}"],
+                            "path": ["autotrain"]
+                        },
+                        "description": "Returns the current auto-retrain schedule configuration and the timestamp of the last training run.\n\n**Response (200):**\n```json\n{\n  \"enabled\": false,\n  \"interval_hours\": 6.0,\n  \"last_train_time\": null\n}\n```"
+                    }
+                },
+                {
+                    "name": "Set Auto-Retrain Config",
+                    "request": {
+                        "method": "POST",
+                        "header": [{"key": "Content-Type", "value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"enabled\": true,\n  \"interval_hours\": 4.0\n}"
+                        },
+                        "url": {
+                            "raw": "{{ml_url}}/autotrain",
+                            "host": ["{{ml_url}}"],
+                            "path": ["autotrain"]
+                        },
+                        "description": "Enable or disable automatic model retraining and set the interval. A background daemon thread checks every 60 s and triggers a full retrain when the interval elapses.\n\n**Response (200):**\n```json\n{\n  \"status\": \"ok\",\n  \"config\": {\n    \"enabled\": true,\n    \"interval_hours\": 4.0\n  }\n}\n```"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "8. HEALTH & MONITORING",
+            "description": "Health checks and observability endpoints",
+            "item": [
+                {
+                    "name": "Gateway Health",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/actuator/health",
+                            "host": ["{{base_url}}"],
+                            "path": ["actuator", "health"]
+                        },
+                        "description": "Spring Boot actuator health for the gateway.\n\n**Response (200):**\n```json\n{\"status\": \"UP\", \"components\": {...}}\n```"
+                    }
+                },
+                {
+                    "name": "Discovery Service Health",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "http://localhost:8761/actuator/health",
+                            "raw": "http://localhost:8761/actuator/health",
+                            "host": ["http://localhost:8761"],
+                            "path": ["actuator", "health"]
+                        },
+                        "description": "Health check for the Eureka discovery service."
+                    }
+                },
+                {
+                    "name": "ML API Health",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{ml_url}}/health",
+                            "host": ["{{ml_url}}"],
+                            "path": ["health"]
+                        },
+                        "description": "FastAPI health — returns model version and threshold.\n\n**Response (200):**\n```json\n{\"status\": \"healthy\", \"model_version\": \"20260402_161522\", \"threshold\": -0.0363}\n```"
+                    }
+                },
+                {
+                    "name": "Prometheus Metrics",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/actuator/prometheus",
+                            "host": ["{{base_url}}"],
+                            "path": ["actuator", "prometheus"]
+                        },
+                        "description": "Prometheus metrics endpoint exposed by the gateway. Scraped every 15 s by the Prometheus container."
+                    }
+                },
+                {
+                    "name": "Eureka Service Registry",
+                    "request": {
+                        "method": "GET",
+                        "header": [{"key": "Accept", "value": "application/json"}],
+                        "url": {
+                            "raw": "http://localhost:8761/eureka/apps",
+                            "host": ["http://localhost:8761"],
+                            "path": ["eureka", "apps"]
+                        },
+                        "description": "Lists all services registered with Eureka. Useful to verify all microservices started correctly."
+                    }
+                }
+            ]
+        },
+        {
+            "name": "9. EXAMPLE WORKFLOWS",
+            "description": "End-to-end request sequences for common scenarios",
+            "item": [
+                {
+                    "name": "WORKFLOW: Full onboarding",
+                    "description": "1. Login → token saved\n2. Register device (sensor-01, TEMPERATURE)\n3. Send normal telemetry × 3\n4. Check analytics/stats/sensor-01 (eventCount should be 3)\n5. Check analytics/history/sensor-01 (last 3 snapshots)\n6. Send critical telemetry (temp 115°C)\n7. Get alerts — expect HIGH alert\n8. Acknowledge alert\n9. Predict with ML API — expect ANOMALY\n10. Check anomaly-stats"
+                },
+                {
+                    "name": "WORKFLOW: Configure and test alert threshold",
+                    "description": "1. Login\n2. GET /rules/temperature — note current threshold (100°C)\n3. POST /rules/temperature with threshold: 50\n4. Send telemetry with temperature: 55 — expect CRITICAL alert\n5. Send telemetry with temperature: 42 — expect WARNING alert\n6. Send telemetry with temperature: 30 — no alert\n7. Restore threshold to 100"
+                },
+                {
+                    "name": "WORKFLOW: ML auto-retrain",
+                    "description": "1. POST /autotrain {enabled: true, interval_hours: 0.016} — ~1 minute interval for testing\n2. GET /autotrain — verify config saved\n3. Wait ~60 s\n4. GET /health — check model_version changed\n5. POST /autotrain {enabled: false} — disable"
+                },
+                {
+                    "name": "WORKFLOW: Verify Online/Offline badge",
+                    "description": "1. Login\n2. Register device (sensor-offline, TEMPERATURE)\n3. GET /analytics/stats/sensor-offline — lastSeen should be null\n4. Send telemetry for sensor-offline\n5. GET /analytics/stats/sensor-offline — lastSeen should now be set (device is Online)\n6. Wait >2 minutes without sending telemetry\n7. GET /analytics/stats/sensor-offline — lastSeen is >2 min ago (device is Offline in the UI)"
+                }
+            ]
+        }
+    ],
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:8080",
+            "type": "string"
+        },
+        {
+            "key": "ml_url",
+            "value": "http://localhost:8000",
+            "type": "string"
+        },
+        {
+            "key": "token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "alert_id",
+            "value": "",
+            "type": "string",
+            "description": "Set this after running Get All Alerts to use in acknowledge/get by ID requests"
+        }
+    ]
+}

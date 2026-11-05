@@ -1,0 +1,238 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+  push:
+    branches:
+      - develop
+      - main
+
+# Cancel in-progress runs for the same branch/PR to save runner minutes
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  # ─────────────────────────────────────────────────────────────
+  # Job 1 — Java: build + test + JaCoCo coverage
+  # ─────────────────────────────────────────────────────────────
+  java-test:
+    name: Java — Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history needed for SonarCloud blame
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven        # caches ~/.m2 between runs
+
+      - name: Build & run tests (JaCoCo enabled)
+        run: |
+          cd spring-event-iot-platform
+          mvn verify -T 2 --batch-mode
+
+      - name: Upload JaCoCo XML reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jacoco-reports
+          path: spring-event-iot-platform/**/target/site/jacoco/jacoco.xml
+          retention-days: 7
+
+      - name: Upload Surefire test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: surefire-reports
+          path: spring-event-iot-platform/**/target/surefire-reports/*.xml
+          retention-days: 7
+
+  # ─────────────────────────────────────────────────────────────
+  # Job 2 — Python: lint (ruff) + tests (pytest + coverage)
+  # ─────────────────────────────────────────────────────────────
+  python-ci:
+    name: Python — Lint & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install ML platform dependencies
+        run: |
+          cd iot-ml-platform
+          pip install -r requirements.txt
+          pip install ruff pytest pytest-cov
+
+      - name: Install Spark service test dependencies (no Java required)
+        run: pip install -r spark-streaming-service/requirements-test.txt
+
+      - name: Lint — ruff (ML platform)
+        run: |
+          ruff check iot-ml-platform \
+            --select=E,F,W,UP,B,C4,RUF \
+            --ignore=E501 \
+            --output-format=github
+
+      - name: Lint — ruff (Spark service)
+        run: |
+          ruff check spark-streaming-service/streaming/features.py \
+            --select=E,F,W,UP,B,C4,RUF \
+            --ignore=E501 \
+            --output-format=github
+
+      - name: Test — ML platform (pytest + coverage)
+        run: |
+          cd iot-ml-platform
+          export PYTHONPATH=$PYTHONPATH:.
+          pytest tests/ -v \
+            --cov=. \
+            --cov-report=xml:coverage.xml \
+            --cov-report=term-missing \
+            --cov-config=.coveragerc
+
+      - name: Test — Spark service feature engineering (no Spark/Java required)
+        run: |
+          cd spark-streaming-service
+          export PYTHONPATH=$PYTHONPATH:.
+          pytest tests/test_features.py tests/test_processor.py -v \
+            --cov=streaming \
+            --cov-report=xml:coverage-spark.xml \
+            --cov-report=term-missing
+
+      - name: Upload Python coverage XML
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: python-coverage
+          path: |
+            iot-ml-platform/coverage.xml
+            spark-streaming-service/coverage-spark.xml
+          retention-days: 7
+
+  # ─────────────────────────────────────────────────────────────
+  # Job 3 — Angular: build (lint + compile)
+  # ─────────────────────────────────────────────────────────────
+  frontend-ci:
+    name: Angular — Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm install --ignore-scripts
+
+      - name: Test
+        run: |
+          cd frontend
+          npm run test:ci
+
+      - name: Build
+        run: |
+          cd frontend
+          npm run build
+
+      - name: Upload Angular coverage
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: angular-coverage
+          path: frontend/coverage/
+          retention-days: 7
+
+  # ─────────────────────────────────────────────────────────────
+  # Job 4 — SonarCloud: Java + Python + TypeScript in one scan
+  # Requires secret: SONAR_TOKEN
+  # ─────────────────────────────────────────────────────────────
+  sonar:
+    name: SonarCloud Analysis
+    runs-on: ubuntu-latest
+    needs: [java-test, python-ci, frontend-ci]
+    # Static analysis is informative only: a missing/expired SONAR_TOKEN must not turn the build red
+    continue-on-error: true
+    # Run even if tests failed so Sonar still reports issues
+    if: ${{ !cancelled() && !contains(needs.*.result, 'cancelled') }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install Python deps
+        run: |
+          cd iot-ml-platform
+          pip install -r requirements.txt pytest pytest-cov
+          pip install -r ../spark-streaming-service/requirements-test.txt
+
+      - name: Generate Python coverage (ML platform + Spark features)
+        run: |
+          cd iot-ml-platform
+          export PYTHONPATH=$PYTHONPATH:.
+          pytest tests/ --cov=. --cov-report=xml:coverage.xml \
+            --cov-config=.coveragerc || true
+          cd ../spark-streaming-service
+          export PYTHONPATH=$PYTHONPATH:.
+          pytest tests/test_features.py tests/test_processor.py --cov=streaming \
+            --cov-report=xml:coverage-spark.xml || true
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate Angular coverage
+        run: |
+          cd frontend
+          npm install --ignore-scripts
+          npm run test:ci || true
+
+      - name: Build Java & generate JaCoCo reports
+        run: |
+          cd spring-event-iot-platform
+          mvn verify -T 2 --batch-mode -q
+
+      - name: SonarCloud Scan (Java + Python + TypeScript)
+        uses: SonarSource/sonarcloud-github-action@ba3875ecf642b2129de2b589510c81a8b53dbf4e
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

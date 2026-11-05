@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 64" width="280" height="64" role="img" aria-label="PulseIoT">
+  <defs>
+    <linearGradient id="pg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#22d3ee"/>
+      <stop offset="1" stop-color="#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#pg)"/>
+  <path d="M8 37h11l7-19 9 30 6-21 3 10h12" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="26" cy="18" r="6.5" fill="#fb7185" fill-opacity=".35"/>
+  <circle cx="26" cy="18" r="3.6" fill="#fb7185" stroke="#ffffff" stroke-width="1.6"/>
+  <text x="80" y="43" font-family="'Space Grotesk','Inter',Arial,sans-serif" font-size="34" font-weight="700" letter-spacing="-1" fill="#e8eefc">Pulse<tspan fill="#22d3ee">IoT</tspan></text>
+</svg>
